@@ -1,0 +1,27 @@
+{
+  "name": "yield_farm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/endadinh/yield_farm.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/endadinh/yield_farm/issues"
+  },
+  "homepage": "https://github.com/endadinh/yield_farm#readme",
+  "dependencies": {
+    "aptos": "^1.3.16",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.8.4"
+  }
+}

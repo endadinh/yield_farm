@@ -6,7 +6,7 @@ version = "0.0.0"
 AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "83641d3f083762f31700060e5e95fbb1cbc28bf0", features = ["address32"]  }
 
 [addresses]
-YieldFarmDeployer = "0x1"
-YieldFarmResourceAccount = "0x1"
-
+std = "0x1"
+MasterChefDeployer = "a6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50"
+ResourceAccountDeployer= "a6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50"
 [features]
