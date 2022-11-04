@@ -1,12 +1,15 @@
 [package]
-name = "yield_farm"
-version = "0.0.0"
-
-[dependencies]
-AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "83641d3f083762f31700060e5e95fbb1cbc28bf0", features = ["address32"]  }
+name = 'masterchef'
+version = '1.0.0'
 
 [addresses]
 std = "0x1"
-MasterChefDeployer = "a6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50"
-ResourceAccountDeployer= "a6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50"
-[features]
+aptos_framework="0x1"
+aptos_std="0x1"
+MasterChefDeployer = "975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af"
+ResourceAccountDeployer= "975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir="aptos-move/framework/aptos-framework/", rev="aptos-cli-v0.3.4" }
+AptosStdlib = { git = "https://github.com/aptos-labs/aptos-core.git", subdir="aptos-move/framework/aptos-stdlib/", rev="aptos-cli-v0.3.4" }
+AptosToken = { git = "https://github.com/aptos-labs/aptos-core.git", subdir="aptos-move/framework/aptos-token/", rev="aptos-cli-v0.3.4" }

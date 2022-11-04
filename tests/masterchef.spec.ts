@@ -3,6 +3,9 @@ import { AptosAccount, AptosClient, CoinClient, FaucetClient, TokenClient, HexSt
 const NODE_URL = "https://fullnode.devnet.aptoslabs.com"
 const FAUCET_URL = "https://faucet.devnet.aptoslabs.com"
 
+const C98_Token = "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::c98_coin::C98";
+const USDT_Token  = "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::c98_coin::USDT";
+
 class HelloAptosClient extends AptosClient {
     constructor() {
         super(NODE_URL)
@@ -10,7 +13,7 @@ class HelloAptosClient extends AptosClient {
 
     async initialize_coin_c98_usdt(adminAccount: AptosAccount) : Promise<string> { 
         const rawTx = await this.generateTransaction(adminAccount.address(), {
-            function: "0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::c98_coin::initialize",
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::c98_coin::initialize",
             type_arguments: [],
             arguments: []
         })
@@ -21,7 +24,7 @@ class HelloAptosClient extends AptosClient {
 
     async register_coins_all(account: AptosAccount) : Promise<string> { 
         const rawTx = await this.generateTransaction(account.address(), {
-            function: "0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::c98_coin::register_coins_all",
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::c98_coin::register_coins_all",
             type_arguments: [],
             arguments: []
         })
@@ -29,10 +32,11 @@ class HelloAptosClient extends AptosClient {
         const pendingTx = await this.submitTransaction(bscTx)
         return pendingTx.hash
     }
-    async mint_coin(adminAccount: AptosAccount, receiver: HexString, amount: number) : Promise<string> { 
+
+    async mint_coin(adminAccount: AptosAccount, coinType: string, receiver: HexString, amount: number) : Promise<string> { 
         const rawTx = await this.generateTransaction(adminAccount.address(), { 
-            function: "0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::c98_coin::mint_coin",
-            type_arguments: ["0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::c98_coin::C98"],
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::c98_coin::mint_coin",
+            type_arguments: [coinType],
             arguments:[receiver,amount]
         })
 
@@ -43,7 +47,7 @@ class HelloAptosClient extends AptosClient {
 
     async initialize(adminAccount: AptosAccount): Promise<string> {
         const rawTx = await this.generateTransaction(adminAccount.address(), {
-            function: "0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::Coin98MasterChef::initialize",
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::initialize",
             type_arguments: [],
             arguments: []
         })
@@ -54,11 +58,39 @@ class HelloAptosClient extends AptosClient {
         return pendingTx.hash
     }
 
-    async add(account: AptosAccount, alloc_point: number) { 
+    async set_admin(adminAccount: AptosAccount, admin: HexString): Promise<string> {
+        const rawTx = await this.generateTransaction(adminAccount.address(), {
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::set_admin",
+            type_arguments: [],
+            arguments: [admin]
+        })
+
+        const bscTx = await this.signTransaction(adminAccount, rawTx)
+
+        const pendingTx = await this.submitTransaction(bscTx)
+        return pendingTx.hash
+    }
+
+    async get_ticket_info(adminAccount: AptosAccount, address: HexString): Promise<string> {
+        this.estimateMaxGasAmount(adminAccount.address());
+        const rawTx = await this.generateTransaction(adminAccount.address(), {
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::is_admin",
+            type_arguments: [],
+            arguments: [address]
+        })
+
+        const bscTx = await this.signTransaction(adminAccount, rawTx)
+
+        const pendingTx = await this.submitTransaction(bscTx);
+        console.log('pendingTx,',pendingTx)
+        return pendingTx.hash
+    }
+
+    async create_pool(account: AptosAccount, CoinType: string, is_pause: boolean) { 
         const rawTx = await this.generateTransaction(account.address(), {
-            function: "0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::Coin98MasterChef::add",
-            type_arguments: ["0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::c98_coin::C98"],
-            arguments: [alloc_point]
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::create_pool",
+            type_arguments: [CoinType],
+            arguments: [is_pause]
         })
 
         const bscTx = await this.signTransaction(account, rawTx)
@@ -67,10 +99,48 @@ class HelloAptosClient extends AptosClient {
         return pendingTx.hash
     }
 
-    async deposit(account: AptosAccount, amount_in: number) { 
+    async create_reward_pool(account: AptosAccount, CoinType: string, reward_start_block: number, reward_per_block: number, reward_end_block: number, is_pause: boolean) { 
+        const rawTx = await this.generateTransaction(account.address(), { 
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::create_pool_reward",
+            type_arguments: [CoinType],
+            arguments: [reward_per_block,reward_start_block, reward_end_block,is_pause]
+        })
+        const bscTx = await this.signTransaction(account, rawTx)
+
+        const pendingTx = await this.submitTransaction(bscTx)
+        return pendingTx.hash
+    }
+
+    async calculator(account: AptosAccount, CoinType: string) { 
+        const rawTx = await this.generateTransaction(account.address(), { 
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::calculate_amount_need_deposit",
+            type_arguments: [CoinType],
+            arguments: []
+        })
+        const bscTx = await this.signTransaction(account, rawTx)
+
+        const pendingTx = await this.submitTransaction(bscTx)
+        return pendingTx.hash
+    }
+
+    async set_pause_pool(account: AptosAccount, coinType: string, pool_type: number , is_pause: boolean) {       /* poolType :  0--pool , 1--reward_pool */ 
+        let method = pool_type == 0  ? "set_pause_pool" : "set_pause_pool_reward";
+        const rawTx = await this.generateTransaction(account.address(), { 
+            function: `0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::${method}`,
+            type_arguments: [coinType],
+            arguments: [is_pause]
+        })
+
+        const bscTx = await this.signTransaction(account, rawTx)
+
+        const pendingTx = await this.submitTransaction(bscTx)
+        return pendingTx.hash
+    } 
+
+    async deposit(account: AptosAccount,tokenDeposit: string,tokenReward: string, amount_in: number) { 
         const rawTx = await this.generateTransaction(account.address(), {
-            function: "0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::Coin98MasterChef::deposit",
-            type_arguments: ["0xa6c171630a309ef0d61c294addb2ad263aad5fa570778edfd53c5efd36e53a50::c98_coin::C98"],
+            function: "0x975f377c6e13eb08cf462f4dea16f57a48bc82c222af40550928f94f369822af::Coin98MasterChef::deposit",
+            type_arguments: [tokenDeposit,tokenReward],
             arguments: [amount_in]
         })
 
@@ -107,9 +177,8 @@ describe("Hello Aptos", () => {
 
         // Create a coin client for checking account balances.
         coinClient = new CoinClient(client);
-        let privateKeyBytes_alice = new TextEncoder().encode("0x6eecd9aa300dc5bb0ac11d14a3879907c6dc11dc1b61edea7fa7f8eb409feb46")
-        let privateKeyBytes_bob = new TextEncoder().encode("0x4713866366c0de30a60c8cd74df33edcd276db92f064655f629e22ea6871e7d3")
-        // let privateKeyBytes_c98 = new TextEncoder().encode("0x4713866366c0de30a60c8cd74df33edcd276db92f064655f629e22ea6871e7d3")
+        let privateKeyBytes_alice = new TextEncoder().encode("0x3078383834656366393963306664fb2903f18ba93844e011d108b7889e6423b0")
+
         // Create accounts.
         // :!:>section_2
         aliceAccount = new AptosAccount(privateKeyBytes_alice);
@@ -122,7 +191,7 @@ describe("Hello Aptos", () => {
         console.log(`Alice: ${aliceAccount.address()}`);
         console.log(`Alice private key : ${privateKey.privateKeyHex}`)
         console.log(`Bob: ${bobAccount.address()}`);
-        console.log("");
+        // console.log(`Bob private key : ${privateKey.privateKeyHex}`);
 
 
         // Fund accounts.
@@ -154,79 +223,95 @@ describe("Hello Aptos", () => {
 
     })
 
-    // it("Initialize C98 - USDT, Register_coins_all" , async () => { 
-    //     const txHash = await client.initialize_coin_c98_usdt(bobAccount);
-    //     await client.waitForTransaction(txHash, {checkSuccess: true});
-    //     console.log('Initialize C98 - USDT - Register coins Success, Hash : ', txHash);
-    // })
+    it("Initialize C98 - USDT, Run 1 times" , async () => { 
+        const txHash = await client.initialize_coin_c98_usdt(aliceAccount);
+        await client.waitForTransaction(txHash, {checkSuccess: true});
+        console.log('Initialize C98 - USDT - Register coins Success, Hash : ', txHash);
+    })
 
     it("Register_coins_all" , async () => { 
-        const txHash = await client.register_coins_all(bobAccount);
+        const txHash = await client.register_coins_all(aliceAccount);
         await client.waitForTransaction(txHash, {checkSuccess: true});
         console.log('Register coins Success, Hash : ', txHash);
     })
 
-    it("Mint coin", async () => { 
-        const txHash = await client.mint_coin(aliceAccount,bobAccount.address(),100_000_000);
+    it("Mint coin C98", async () => { 
+        const txHash = await client.mint_coin(aliceAccount,C98_Token ,aliceAccount.address(),100_000_000);
         await client.waitForTransaction(txHash, {checkSuccess: true});
-        console.log('mint coin tx', txHash);
+        console.log('mint coin C98 tx', txHash);
     })
-    // it("Register coin", async () => { 
-    //     const txHash = await client.registerCoin(aliceAccount.address(), bobAccount)
+
+    it("Mint coin USDT", async () => { 
+        const txHash = await client.mint_coin(aliceAccount, USDT_Token,aliceAccount.address(),100_000_000);
+        await client.waitForTransaction(txHash, {checkSuccess: true});
+        console.log('mint coin USDT tx', txHash);
+    })
+
+    // it("Initialize, Run 1 times", async () => {
+    //     const txHash = await client.initialize(aliceAccount)
     //     await client.waitForTransaction(txHash, { checkSuccess: true })
-    //     console.log("Transaction success", txHash)
+    //     console.log("Initialize Masterchef tx", txHash)
     // })
 
-    // it("Create collection", async () => {
-    //     const txnHash1 = await tokenClient.createCollection(
-    //         aliceAccount,
-    //         collectionName,
-    //         "Alice's simple collection",
-    //         "https://alice.com",
-    //     ); // <:!:section_4
-    //     await client.waitForTransaction(txnHash1, { checkSuccess: true });
-    //     console.log('txHash ne', txnHash1)
-    // })
-
-    // it("Create a token in that collection.", async () => {
-    //     // :!:>section_5
-    //     const txnHash2 = await tokenClient.createToken(
-    //         aliceAccount,
-    //         collectionName,
-    //         tokenName,
-    //         "Alice's simple token",
-    //         1,
-    //         "https://aptos.dev/img/nyan.jpeg",
-    //     ); // <:!:section_5
-    //     await client.waitForTransaction(txnHash2, { checkSuccess: true });
-
-    //     // Print the collection data.
-    //     // :!:>section_6
-    //     const collectionData = await tokenClient.getCollectionData(aliceAccount.address(), collectionName);
-    //     console.log('txHash here : ', txnHash2);
-    //     console.log(`Alice's collection: ${JSON.stringify(collectionData, null, 4)}`); // <:!:section_6
-
-    // })
-
-    it("Initialize", async () => {
-        const txHash = await client.initialize(aliceAccount)
-        await client.waitForTransaction(txHash, { checkSuccess: true })
-        console.log("Transaction success", txHash)
+    it("Add pool",async () => { 
+        const txHash = await client.create_pool(aliceAccount,USDT_Token,false);
+        await client.waitForTransaction(txHash,{checkSuccess: true})
+        console.log("Add new pool tx : ", txHash);
     })
 
-    // it("add",async () => { 
-    //     const txHash = await client.add(aliceAccount,1);
-    //     await client.waitForTransaction(txHash,{checkSuccess: true})
-    //     console.log("add hash ", txHash);
-    // })
-
-    it("deposit", async () => { 
-        const txHash = await client.deposit(bobAccount,100_000_000);
+    it("Create reward pool", async () => { 
+        const txHash = await client.create_reward_pool(aliceAccount,C98_Token,96_000,100_000, 960_000, false);
         await client.waitForTransaction(txHash,{checkSuccess: true})
         console.log("add hash ", txHash);
     })
 
-    it("balance after deposit", async() => { 
-
+    it("Set pause pool", async () => { 
+        console.log("=============== Pause pool ============");
+        const txHash1 = await client.set_pause_pool(aliceAccount,USDT_Token,0,true);
+        console.log('hash', txHash1)
+        await client.waitForTransaction(txHash1,{checkSuccess: true})
+        console.log("=============== unPause pool ============");
+        const txHash2 = await client.set_pause_pool(aliceAccount,USDT_Token,0,false);
+        console.log('hash', txHash2)
+        await client.waitForTransaction(txHash2,{checkSuccess: true})
+        console.log("=============== Pause pool reward ============");
+        const txHash3 = await client.set_pause_pool(aliceAccount,C98_Token,1,true);
+        console.log('hash', txHash3)
+        await client.waitForTransaction(txHash3,{checkSuccess: true})
+        console.log("=============== unPause pool reward ============");
+        const txHash4 = await client.set_pause_pool(aliceAccount,C98_Token,1,false);
+        console.log('hash', txHash4)
+        await client.waitForTransaction(txHash4,{checkSuccess: true})
     })
+
+    it("Init admin", async () => { 
+        const txHash = await client.initialize(aliceAccount);
+        await client.waitForTransaction(txHash,{checkSuccess: true})
+        console.log("add hash ", txHash);
+    })
+
+    it("Set admin", async () => { 
+        const txHash = await client.set_admin(aliceAccount,aliceAccount.address());
+        await client.waitForTransaction(txHash,{checkSuccess: true})
+        console.log("add hash ", txHash);
+    })
+
+
+    it("Get admin", async () => { 
+        const txHash = await client.get_ticket_info(aliceAccount,bobAccount.address());
+        await client.waitForTransaction(txHash,{checkSuccess: true})
+        console.log("add hash ", txHash);
+    })
+
+    // it("Create reward pool", async () => { 
+    //     const txHash = await client.calculator(aliceAccount,C98_Token);
+    //     await client.waitForTransaction(txHash,{checkSuccess: true})
+    //     console.log("add hash ", txHash);
+    // })
+
+    
+
+    // it("balance after deposit", async() => { 
+
+    // })
 })
